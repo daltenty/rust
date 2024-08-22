@@ -65,7 +65,6 @@ pub unsafe fn init(argc: isize, argv: *const *const u8, sigpipe: u8) {
         // fast path with a single syscall for systems with poll()
         #[cfg(not(any(
             miri,
-            target_os = "aix",
             target_os = "emscripten",
             target_os = "fuchsia",
             target_os = "vxworks",
@@ -74,8 +73,9 @@ pub unsafe fn init(argc: isize, argv: *const *const u8, sigpipe: u8) {
             target_os = "horizon",
             target_os = "vita",
             target_os = "rtems",
-            // The poll on Darwin doesn't set POLLNVAL for closed fds.
+            // The poll on Darwin/AIX don't set POLLNVAL for closed fds.
             target_vendor = "apple",
+            target_os = "aix",
         )))]
         'poll: {
             #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
@@ -384,7 +384,7 @@ cfg_if::cfg_if! {
         #[link(name = "pthread")]
         #[link(name = "rt")]
         extern "C" {}
-    } else if #[cfg(any(target_os = "dragonfly", target_os = "openbsd"))] {
+    } else if #[cfg(any(target_os = "dragonfly", target_os = "openbsd", target_os = "aix"))] {
         #[link(name = "pthread")]
         extern "C" {}
     } else if #[cfg(target_os = "solaris")] {
